@@ -7,7 +7,10 @@ class emgVAE(keras.Model):
 	def __init__(self, input_dim, latent_dim, hidden_states, kl, emg = True, sample_weights = False):
 		super(emgVAE, self).__init__()
 		self.input_dim = input_dim
-		self.latent_dim = latent_dim
+		if emg:
+			self.latent_dim = latent_dim -1
+		else:
+			self.latent_dim = latent_dim
 		self.prior = tfp.distributions.MultivariateNormalDiag(loc=tf.zeros(self.latent_dim))
 		self.encoder = tf.keras.Sequential()
 		self.encoder.add(tf.keras.layers.InputLayer(input_shape=(self.input_dim,)))
@@ -38,7 +41,7 @@ class emgVAE(keras.Model):
 		if self.emg:
 			temp = tf.concat((z, tf.expand_dims(inputs[:, -1], 1)), axis=1)
 			return temp
-		return z
+		return tf.convert_to_tensor(z).numpy()
 
 
 	def train_step(self, data):
