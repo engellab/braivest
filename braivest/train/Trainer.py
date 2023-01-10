@@ -31,7 +31,7 @@ class Trainer():
 		self.val_set = (x_val, y_val)
 		try:
 			self.hypno = load_data(artifact_dir, 'hypno.npy')
-		except Error e:
+		except Error:
 			self.hypno = None
 	
 	def train(self, train_set=None, val_set=None, wandb=False, custom_callback=False):
