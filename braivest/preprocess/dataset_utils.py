@@ -12,3 +12,8 @@ def bin_data(data, original_sample, sampling_rate):
 			rec_sub = np.reshape(data_cut, (-1, int(subfactor)))
 		return rec_sub
 	return data
+
+def find_artifacts(signal, threshold, sample_rate):
+	indices = np.argwhere(np.abs(signal)> threshold)
+	sub_indices = (indices/sample_rate).astype(int)
+	return np.unique(sub_indices)
