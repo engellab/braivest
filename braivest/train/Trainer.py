@@ -11,6 +11,18 @@ from braivest.model.emgVAE import emgVAE
 from braivest.utils import load_data
 
 
+"""
+kwargs...
+
+if i have a function f(a, b, **kwargs), then inside f, kwargs is a dictionary..
+so i can call it like this f(1, 2, a=2, b=2) and then kwargs inside is {"a":2, ...}
+
+*args ....
+
+give f(*args), then you can call it like this f(1,2,3,4) and then args is a list.
+"""
+
+
 class Trainer():
 	"""
 	Trainer class to train the braivest model.
@@ -50,7 +62,7 @@ class Trainer():
 		except Exception:
 			self.hypno = None
 	
-	def train(self, train_set=None, val_set=None, wandb=False, custom_callback=False, save_model=True):
+	def train(self, train_set=None, val_set=None, wandb=False, custom_callback=False, save_model=True, save_best_only=True, save_dir = None, train_kwargs = None, save_kwargs = None):
 		"""
 			Train the model.
 			Input:
@@ -59,6 +71,8 @@ class Trainer():
 				wandb (dtype: boolean): Whether to use wandb to train the model
 				custom_callback (dtype: boolean): Whether to use the custom callback in wandb_callbacks
 				save_model (dtype: boolean): Whether or not to save the model every epoch.
+				train_kwargs (dtype: dict)
+				save_kwargs (dtype: dict)
 
 		"""
 		assert train_set is not None or self.train_set is not None, "No training data supplied."
@@ -67,14 +81,20 @@ class Trainer():
 		if val_set is not None: s
 			self.val_set = val_set
 		if wandb:
-			wandb_callback = WandbCallback(save_model=save_model)
+			wandb_callback = WandbCallback(save_model=save_model, save_weights_only=True, **save_kwargs)
+			callbacks = [wandb_callback]
+			if not save_best_only:
+				save_callback = tf.keras.callbacks.ModelCheckpoint(wandb.run.dir, save_weights_only=True, save_best_only=False, **save_kwargs)
+				callbacks.append(save_callback)
 			if custom_callback:
 				custom_callback = CustomWandbCallback(val_set, self.hypno, plot=False)
-				callbacks = [wandb_callback, custom_callback]
-			else:
-				callbacks = [wandb_callback]
+				callbacks.append(custom_callback)
 		else:
-			callbacks = None
+			if save_dir is None:
+				print "No save directory provided!"
+				callbacks = []
+			else:
+				save_callback = tf.keras.callbacks.ModelCheckpoint(save_dir, save_weights_only=True, save_best_only=save_best_ony, **save_kwargs)
 		history = self.model.fit(self.train_set[0], self.train_set[1], epochs=self.config.epochs, batch_size=self.config.batch_size,
-				validation_data=self.val_set, callbacks=callbacks)
+				validation_data=self.val_set, callbacks=callbacks, **train_kwargs)
 		return history.history
