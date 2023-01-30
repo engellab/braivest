@@ -4,7 +4,15 @@ import tensorflow_probability as tfp
 import numpy as np
 
 class emgVAE(keras.Model):
-	def __init__(self, input_dim, latent_dim, hidden_states, kl, emg = True, sample_weights = False):
+	def __init__(self, input_dim, latent_dim, hidden_states, kl, emg = True):
+		"""
+			input_dim (dtype: int): the dimension of the input
+			latent_dim (dtype: int): the dimension of the bottelneck layer
+			hidden_states (dtype: list of ints): List of hidden layer dimension
+			kl (dtype: float): Weight of the KL divergence loss
+			emg (dtype: boolean): Whether or not to explicitly set one of the 
+			latent dimensions as emg (the last dimension of the input)
+		"""
 		super(emgVAE, self).__init__()
 		self.input_dim = input_dim
 		if emg:
@@ -25,7 +33,6 @@ class emgVAE(keras.Model):
 			self.decoder.add(tf.keras.layers.Dense(n_units, activation='relu'))
 		self.decoder.add(tf.keras.layers.Dense(self.input_dim))
 
-
 		self.loss_tracker = keras.metrics.Mean(name="loss")
 		self.neighbor_loss_tracker = keras.metrics.Mean(name="neighbor_loss")
 		self.mse = keras.metrics.MeanSquaredError(name='mse')
@@ -36,6 +43,13 @@ class emgVAE(keras.Model):
 		return self.decoder(z)
 
 	def encode(self, inputs):
+		"""
+		Pass the data through the input to get the latent representation.
+		Inputs:
+			inputs: the input data
+		Returns:
+			the latent representation (dtype: ndarray)
+		"""
 		inputs = tf.cast(inputs, dtype=tf.float32)
 		z = self.encoder(inputs)
 		if self.emg:
@@ -45,7 +59,7 @@ class emgVAE(keras.Model):
 
 
 	def train_step(self, data):
-		# Unpack the data. Its structure depends on your model and
+		# Unpack the data.
 		x, y = data
 
 		with tf.GradientTape() as tape:
