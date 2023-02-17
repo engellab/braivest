@@ -1,3 +1,4 @@
+
 import numpy as np
 import sys
 from braivest.model.emgVAE import emgVAE
@@ -8,6 +9,18 @@ from pyvis.network import Network
 import seaborn as sns
 
 def hmm_cross_val(clusters, datasets, n_repeats=3, ind_mask=None):
+"""
+Cross validation for training of HMM
+Inputs:
+- clusters (dtype: int): The number of clusters
+- datasets (dtype: list): List of datasets (continuous 2-D encodings)
+- n_repeats (dtype: int, default: 3): Number of repeats to do cross-validation
+- ind_mask: (dtype: array-like, default: None) Array that specifies for each dataset which probe it is from for training MultiHMM only.
+Returns:
+    - The trained hmm
+    - List of train scores (log-likelihood)
+    - List of test scores (log-likelihood)
+"""
     train_scores = []
     test_scores = []
     for repeat in range(n_repeats):
@@ -26,14 +39,40 @@ def hmm_cross_val(clusters, datasets, n_repeats=3, ind_mask=None):
         test_scores.append(hmm.log_likelihood(test_data, ind_mask = test_mask)/np.sum([len(test_data[i]) for i in range(len(test_data))]))
     return hmm, train_scores, test_scores
 
-def get_hmm_labels(hmm, encodings_list):
+def get_hmm_labels(hmm, encodings_list, trans_ind=None):
+"""
+Predicts hmm labels of a list of encodings
+Inputs:
+- hmm (dtype: HMM or MultiHMM): the HMM
+- encodings_list (dtype: list of np.ndarray): list of continuous session encodings to predict labels
+- trans_ind (dtype: ind, default: None): The index of transition matrix for MultiHMM
+Returns:
+- list of labels for each encoding session
+"""
     sess_labels = []
     for split in encodings_list:
-        sess_labels.append(hmm.most_likely_states(split))
+        if trans_ind:
+            sess_labels.append(hmm.most_likely_states(split, trans_ind: trans_ind))
+        else:
+            sess_labels.append(hmm.most_likely_states(split))
     return sess_labels
 
-def plot_state_durations(hmm, encodings_list, ordering=None, color_list=None, binwidth=0.4, kde_kws=None):
-    sess_labels = get_hmm_labels(hmm, encodings_list)
+def plot_state_durations(hmm, encodings_list, trans_ind= None, ordering=None, color_list=None, binwidth=0.4, kde_kws=None):
+    """
+    Plot the state durations
+    Inputs:
+    - hmm (dtype: HMM or MultiHMM): the HMM
+    - encodings_list (dtype: list of np.ndarray): list of continuous session encodings to predict labels
+    - trans_ind (dtype: ind, default: None): The index of transition matrix for MultiHMM
+    - ordering (dtype: list): how to order the graphs for subplots
+    - color_list (dtype: list of colors): color to assign each state
+    - binwidth (dtype: float): bin width for kde histogram
+    - kde_kwargs (dtype: dict): args to pass to seaborn kde
+    Returns:
+    - inferred durations 
+    - state duration figure
+    """
+    sess_labels = get_hmm_labels(hmm, encodings_list, trans_ind)
     sess_labels = np.concatenate(sess_labels, axis=None)
     inferred_state_list, inferred_durations = ssm.util.rle(np.asarray(sess_labels))
     plt.figure(figsize=(10, 5))
@@ -48,16 +87,26 @@ def plot_state_durations(hmm, encodings_list, ordering=None, color_list=None, bi
         plt.ylabel("")
     return inferred_durations, plt.gcf()
 
-def plot_transition_graph(hmm, sess_labels, colors, save, threshold=0.15):
+def plot_transition_graph(K, transition_matrix, sess_labels, colors, save, threshold=0.15):
+    """
+    Use pyvis.network to visualize the transition graph
+    Inputs:
+    - K (dtype: int): number of states
+    - transition_matrix (dtype: np.ndarray): the transition matrix
+    - sess_labels (dtype: np.ndarray): A single array of session labels to calculate percent of time in each state
+    - colors (dtype: list): list of colors
+    - save (dtype: str): path to save html file
+    - threshold (dtype: float): threshold of [transition/(all transitions from that state except to self)] that determines whether or not to show the transition in the graph
+    """
     percents = []
-    for i in range(hmm.K):
+    for i in range(K):
         percents.append(np.sum(sess_labels==i)/sess_labels.shape[0])
     net = Network(directed=True, notebook=True)
-    net.add_nodes(range(hmm.K), value=percents, color=colors)
-    for source in range(hmm.K):
-        for to in range(hmm.K):
+    net.add_nodes(range(K), value=percents, color=colors)
+    for source in range(K):
+        for to in range(K):
             if source != to:
-                value = hmm.transitions.transition_matrix[source, to]
-                if hmm.transitions.transition_matrix[source, to]/(1 - hmm.transitions.transition_matrix[source,source]) > threshold:
-                    net.add_edge(source, to, value=value, title=hmm.transitions.transition_matrix[source, to], arrow_strikethrough=False)
+                value = transition_matrix[source, to]
+                if transition_matrix[source, to]/(1 - transition_matrix[source,source]) > threshold:
+                    net.add_edge(source, to, value=value, title=transition_matrix[source, to], arrow_strikethrough=False)
     net.show(save)

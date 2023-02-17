@@ -16,7 +16,14 @@ def butter_highpass_filter(data, cutoff, fs, order=5):
 
 def pywt_frequency2scale(wavelet,frequencies,sampling_rate):
 	"""
-	Pywt helper functions. Given wavelet wavelet_name, range of frequencies along with sampling rate for a given signal, returns the scales that would capture these frequencies. 
+	Pywt helper function Given wavelet wavelet_name, range of frequencies along with sampling rate for a given signal, 
+	returns the scales that would capture these frequencies. 
+	Input:
+		wavelet: (dtype: string), wavelet name
+		frequencies: (dtype: list of floats), desired frequencies for the wavelets
+		sampling_rate: (dtype: float), sampling rate of raw data
+	Returns:
+		The scales that capture the frequency (dtype: list of floats)
 	"""
 
 	# There is a linear relationship (inverse times the some constant) between scale and frequency
@@ -31,7 +38,18 @@ def pywt_frequency2scale(wavelet,frequencies,sampling_rate):
 	return scales
 
 def calculate_wavelet_coeffs(recording, wavelet_name, scales, sampling_rate, highpass=0, zscore=True):
-
+	""" 
+	Calculate the wavelet coefficients of a signal. See pywt for more reference.
+	Input: 
+		recording: (dtype: ndarray) the input signal
+		wavelet_name: (dtype: string) the name the wavelet
+		sampling_rate: (dtype: float) the sample rate of the input signal
+		highpass: (dtype: float, default=0), a frequency threshold to highpass the data
+		zscore: (dtype: bool, default=True) whether or not to zscore the input signal before calculating wavelets
+	Returns:
+		- calculated wavelet coefficients (dtype: ndarray)
+		- the frequencies of the calculated wavelets (dtype: ndarray)
+	"""
 	recording[np.isnan(recording)] = np.nanmax(recording)
 	if highpass > 0:
 		recording = butter_highpass_filter(recording, highpass, sampling_rate, 6)
@@ -41,6 +59,14 @@ def calculate_wavelet_coeffs(recording, wavelet_name, scales, sampling_rate, hig
 	return coefficients, frequencies
 
 def calculate_wavelet_power(coefficients, subsample= 1):
+	"""
+	Calculate wavelet power from wavelet coefficients.
+	Input:
+		 coefficient (dtype: ndarray): wavelet coefficients calculated using calculate_wavelet_coeffs
+		 subsample (dtype: int, default=1): Factor to subsample the coefficients
+	Returns:
+		The wavelet power (dtype: ndarray)
+	"""
 	power = np.log2(np.square(np.abs(coefficients)))
 
 	#replace infinities 

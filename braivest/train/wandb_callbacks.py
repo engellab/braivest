@@ -1,3 +1,7 @@
+"""
+Defines a custom wandb callback which can be used to calculate metrics and plot visualizations at every epoch
+Metrics: skew, kurtosis, silhouette score
+"""
 import wandb
 import plotly.express as px
 import tensorflow as tf
@@ -9,6 +13,34 @@ import numpy as np
 from scipy.stats import skew, kurtosis
 from tensorflow.keras.losses import MeanSquaredError
 from scipy.stats import entropy
+
+class CustomWandbCallback(keras.callbacks.Callback):
+    def __init__(self, validation_data, hypno, plot = False):
+        """
+        Inputs:
+            validation_data (dtype: tuple of (np.ndarray, np.ndarray)), validation dataset
+            hypno (dtype: np.ndarray): hypnogram
+            plot (dtype: bool): whether or not to generate a plot
+        """
+        self.hypno = hypno
+        self.validation_data = validation_data
+        self.plot = plot
+
+    def on_epoch_end(self, epoch, logs=None, ):
+        if epoch < 10 or epoch % 20 == 0:
+            encodings = self.get_encodings()
+            if self.plot:
+                fig = plot_encodings(encodings, "Val Plot", hypno=self.hypno)
+                wandb.log({"epoch": epoch, "encodings": fig}, commit=False)
+            if self.hypno is not None:
+                wandb.log(distribution_metrics_labels(encodings, self.hypno), commit=False)
+            wandb.log({'entropy': get_entropy(encodings)}, commit=False)
+
+    def get_encodings(self):
+        print(self.validation_data[0].shape)
+        encodings = self.model.encode(self.validation_data[0])
+        encodings = tf.convert_to_tensor(encodings).numpy()
+        return encodings
 
 def distribution_metrics_labels(encodings, hypno):
     length = min(len(hypno), encodings.shape[0])
@@ -54,24 +86,4 @@ def plot_encodings(encodings, title, hypno=None):
         fig.update_traces(marker=dict(size=5, opacity=0.5))
         return fig
 
-class CustomWandbCallback(keras.callbacks.Callback):
-    def __init__(self, validation_data, hypno, plot = False):
-        self.hypno = hypno
-        self.validation_data = validation_data
-        self.plot = plot
 
-    def on_epoch_end(self, epoch, logs=None, ):
-        if epoch < 10 or epoch % 20 == 0:
-            encodings = self.get_encodings()
-            if self.plot:
-                fig = plot_encodings(encodings, "Val Plot", hypno=self.hypno)
-                wandb.log({"epoch": epoch, "encodings": fig}, commit=False)
-            if self.hypno is not None:
-                wandb.log(distribution_metrics_labels(encodings, self.hypno), commit=False)
-            wandb.log({'entropy': get_entropy(encodings)}, commit=False)
-
-    def get_encodings(self):
-        print(self.validation_data[0].shape)
-        encodings = self.model.encode(self.validation_data[0])
-        encodings = tf.convert_to_tensor(encodings).numpy()
-        return encodings
