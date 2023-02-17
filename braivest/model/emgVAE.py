@@ -37,6 +37,7 @@ class emgVAE(keras.Model):
 
 	def encode(self, inputs):
 		inputs = tf.cast(inputs, dtype=tf.float32)
+		print(inputs.shape)
 		z = self.encoder(inputs)
 		if self.emg:
 			temp = tf.concat((z, tf.expand_dims(inputs[:, -1], 1)), axis=1)

@@ -6,8 +6,8 @@ def load_wandb_model(run, input_dim, epoch=None):
 # run is specified by <entity>/<project>/<run id>
 
     run = api.run(run)
-    layers = [run.config.layer_dims for layer in range(run.config.num_layers)]
-    model = emgVAE(input_dim, run.config.latent, layers, run.config['kl'], emg = run.config.emg)
+    layers = [run.config['layer_dims'] for layer in range(run.config['num_layers'])]
+    model = emgVAE(input_dim, run.config['latent'], layers, run.config['kl'], emg = run.config['emg'])
     model.build((None, input_dim))
     try:
         run.file("model.h5".format(epoch)).download(root = './temp', replace=True)
