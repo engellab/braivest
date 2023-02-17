@@ -23,7 +23,7 @@ def plot_encodings(encodings, hypno=None, color=None, color_map=None, x_range=No
     if x_range:
         fig.update_xaxes(range =x_range)
     if y_range:
-        fig.updateyaxes(range=y_range)
+        fig.update_yaxes(range=y_range)
     return fig
 
 def plot_raw_data(raw_eeg, raw_emg, raw_index, sample_rate, segment=10, highpass=None):
