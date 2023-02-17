@@ -1,3 +1,7 @@
+"""
+Defines a custom wandb callback which can be used to calculate metrics and plot visualizations at every epoch
+Metrics: skew, kurtosis, silhouette score
+"""
 import wandb
 import plotly.express as px
 import tensorflow as tf
@@ -12,6 +16,12 @@ from scipy.stats import entropy
 
 class CustomWandbCallback(keras.callbacks.Callback):
     def __init__(self, validation_data, hypno, plot = False):
+        """
+        Inputs:
+            validation_data (dtype: tuple of (np.ndarray, np.ndarray)), validation dataset
+            hypno (dtype: np.ndarray): hypnogram
+            plot (dtype: bool): whether or not to generate a plot
+        """
         self.hypno = hypno
         self.validation_data = validation_data
         self.plot = plot
