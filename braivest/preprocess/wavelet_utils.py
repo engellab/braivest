@@ -14,6 +14,10 @@ def butter_highpass_filter(data, cutoff, fs, order=5):
 	y = lfilter(b, a, data)
 	return y
 
+def get_wavelet_freqs(start_freq, end_freq, n_bands):
+	freqs = np.logspace(np.log10(start_freq), np.log10(end_freq), n_bands)
+	return freqs
+
 def pywt_frequency2scale(wavelet,frequencies,sampling_rate):
 	"""
 	Pywt helper function Given wavelet wavelet_name, range of frequencies along with sampling rate for a given signal, 
