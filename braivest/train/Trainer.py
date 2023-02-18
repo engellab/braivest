@@ -44,7 +44,7 @@ class Trainer():
 		"""
 		Load a dataset from a dataset directory
 		Input: 
-			dataset_dir (dtype: string): The relative path of the dataset directory
+			dataset_dir (dtype: string): The relative path of the dataset directory. Should contain file "train.npy", and if applicable, "train_Y.npy" and "hypno.npy"
 			val_size (dtype: float, default=0.2): The percent of the data to use as a validation set
 		"""
 		if self.config.time:
@@ -78,7 +78,7 @@ class Trainer():
 		assert train_set is not None or self.train_set is not None, "No training data supplied."
 		if train_set is not None:
 			self.train_set = train_set
-		if val_set is not None: s
+		if val_set is not None: 
 			self.val_set = val_set
 		if wandb:
 			wandb_callback = WandbCallback(save_model=save_model, save_weights_only=True, **save_kwargs)
@@ -91,7 +91,7 @@ class Trainer():
 				callbacks.append(custom_callback)
 		else:
 			if save_dir is None:
-				print "No save directory provided!"
+				print("No save directory provided!")
 				callbacks = []
 			else:
 				save_callback = tf.keras.callbacks.ModelCheckpoint(save_dir, save_weights_only=True, save_best_only=save_best_ony, **save_kwargs)
