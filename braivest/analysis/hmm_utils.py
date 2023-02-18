@@ -9,18 +9,18 @@ from pyvis.network import Network
 import seaborn as sns
 
 def hmm_cross_val(clusters, datasets, n_repeats=3, ind_mask=None):
-"""
-Cross validation for training of HMM
-Inputs:
-- clusters (dtype: int): The number of clusters
-- datasets (dtype: list): List of datasets (continuous 2-D encodings)
-- n_repeats (dtype: int, default: 3): Number of repeats to do cross-validation
-- ind_mask: (dtype: array-like, default: None) Array that specifies for each dataset which probe it is from for training MultiHMM only.
-Returns:
-    - The trained hmm
-    - List of train scores (log-likelihood)
-    - List of test scores (log-likelihood)
-"""
+    """
+    Cross validation for training of HMM
+    Inputs:
+    - clusters (dtype: int): The number of clusters
+    - datasets (dtype: list): List of datasets (continuous 2-D encodings)
+    - n_repeats (dtype: int, default: 3): Number of repeats to do cross-validation
+    - ind_mask: (dtype: array-like, default: None) Array that specifies for each dataset which probe it is from for training MultiHMM only.
+    Returns:
+        - The trained hmm
+        - List of train scores (log-likelihood)
+        - List of test scores (log-likelihood)
+    """
     train_scores = []
     test_scores = []
     for repeat in range(n_repeats):
@@ -40,24 +40,24 @@ Returns:
     return hmm, train_scores, test_scores
 
 def get_hmm_labels(hmm, encodings_list, trans_ind=None):
-"""
-Predicts hmm labels of a list of encodings
-Inputs:
-- hmm (dtype: HMM or MultiHMM): the HMM
-- encodings_list (dtype: list of np.ndarray): list of continuous session encodings to predict labels
-- trans_ind (dtype: ind, default: None): The index of transition matrix for MultiHMM
-Returns:
-- list of labels for each encoding session
-"""
+    """
+    Predicts hmm labels of a list of encodings
+    Inputs:
+    - hmm (dtype: HMM or MultiHMM): the HMM
+    - encodings_list (dtype: list of np.ndarray): list of continuous session encodings to predict labels
+    - trans_ind (dtype: ind, default: None): The index of transition matrix for MultiHMM
+    Returns:
+    - list of labels for each encoding session
+    """
     sess_labels = []
     for split in encodings_list:
         if trans_ind:
-            sess_labels.append(hmm.most_likely_states(split, trans_ind: trans_ind))
+            sess_labels.append(hmm.most_likely_states(split, trans_ind=trans_ind))
         else:
             sess_labels.append(hmm.most_likely_states(split))
     return sess_labels
 
-def plot_state_durations(hmm, encodings_list, trans_ind= None, ordering=None, color_list=None, binwidth=0.4, kde_kws=None):
+def plot_state_durations(sess_labels, K, trans_ind= None, ordering=None, color_list=None, binwidth=0.4, kde_kws=None):
     """
     Plot the state durations
     Inputs:
@@ -72,14 +72,12 @@ def plot_state_durations(hmm, encodings_list, trans_ind= None, ordering=None, co
     - inferred durations 
     - state duration figure
     """
-    sess_labels = get_hmm_labels(hmm, encodings_list, trans_ind)
-    sess_labels = np.concatenate(sess_labels, axis=None)
     inferred_state_list, inferred_durations = ssm.util.rle(np.asarray(sess_labels))
     plt.figure(figsize=(10, 5))
     if ordering is None:
-        ordering = list(range(hmm.K))
+        ordering = list(range(K))
     for i, s in enumerate(ordering):
-        plt.subplot(hmm.K, 1, i + 1)
+        plt.subplot(K, 1, i + 1)
         sns.histplot(np.log(inferred_durations[inferred_state_list == s]), kde=True, stat='probability', color=color_list[s], binwidth=binwidth , kde_kws=kde_kws)
         plt.xlim((0,7))
         plt.yticks([])
