@@ -62,7 +62,7 @@ class Trainer():
 		except Exception:
 			self.hypno = None
 	
-	def train(self, train_set=None, val_set=None, wandb=False, custom_callback=False, save_model=True, save_best_only=True, save_dir = None, train_kwargs = None, save_kwargs = None):
+	def train(self, train_set=None, val_set=None, wandb=False, custom_callback=False, save_model=True, save_best_only=True, save_dir = None, train_kwargs = {}, save_kwargs = {}):
 		"""
 			Train the model.
 			Input:

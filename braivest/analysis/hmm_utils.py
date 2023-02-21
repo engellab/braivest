@@ -57,15 +57,13 @@ def get_hmm_labels(hmm, encodings_list, trans_ind=None):
             sess_labels.append(hmm.most_likely_states(split))
     return sess_labels
 
-def plot_state_durations(sess_labels, K, trans_ind= None, ordering=None, color_list=None, binwidth=0.4, kde_kws=None):
+def plot_state_duration(sess_labels, s,  color, binwidth=0.4, kde_kws=None):
     """
     Plot the state durations
     Inputs:
-    - hmm (dtype: HMM or MultiHMM): the HMM
-    - encodings_list (dtype: list of np.ndarray): list of continuous session encodings to predict labels
-    - trans_ind (dtype: ind, default: None): The index of transition matrix for MultiHMM
-    - ordering (dtype: list): how to order the graphs for subplots
-    - color_list (dtype: list of colors): color to assign each state
+    - sess_labels: HMM labels for each point shape (time_steps,)
+    - s: which label to plot state duration
+    - color (dtype: string): color for the plot
     - binwidth (dtype: float): bin width for kde histogram
     - kde_kwargs (dtype: dict): args to pass to seaborn kde
     Returns:
@@ -73,16 +71,10 @@ def plot_state_durations(sess_labels, K, trans_ind= None, ordering=None, color_l
     - state duration figure
     """
     inferred_state_list, inferred_durations = ssm.util.rle(np.asarray(sess_labels))
-    plt.figure(figsize=(10, 5))
-    if ordering is None:
-        ordering = list(range(K))
-    for i, s in enumerate(ordering):
-        plt.subplot(K, 1, i + 1)
-        sns.histplot(np.log(inferred_durations[inferred_state_list == s]), kde=True, stat='probability', color=color_list[s], binwidth=binwidth , kde_kws=kde_kws)
-        plt.xlim((0,7))
-        plt.yticks([])
-        plt.xticks([])
-        plt.ylabel("")
+    sns.histplot(np.log(inferred_durations[inferred_state_list == s]), kde=True, stat='probability', color=color, binwidth=binwidth , kde_kws=kde_kws)
+    plt.xlim((0,7))
+    plt.ylabel("Freq")
+    plt.xlabel("Log Time (s)")
     return inferred_durations, plt.gcf()
 
 def plot_transition_graph(K, transition_matrix, sess_labels, colors, save, threshold=0.15):

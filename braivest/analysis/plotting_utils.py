@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from braivest.preprocess.wavelet_utils import butter_highpass_filter
 
-def plot_encodings(encodings, color=None, color_map=None, x_range=None, y_range=None, scatter_kwargs=None):
+def plot_encodings(encodings, color=None, color_map=None, x_range=None, y_range=None, scatter_kwargs={}):
 	"""
 	Plot 2-D encodings using plotly
 	Inputs:
@@ -16,13 +16,13 @@ def plot_encodings(encodings, color=None, color_map=None, x_range=None, y_range=
 	Returns:
 	- encodings figure
 	"""
-	if color:
-		if color_map:
+	if color is not None:
+		if color_map is not None:
 			fig = px.scatter(encodings, x=0, y=1, color = color, color_discrete_map=color_map, *scatter_kwargs)
 		else:
-			fig = px.scatter(encodings, x=0,y=1, color=color)
+			fig = px.scatter(encodings, x=0,y=1, color=color, *scatter_kwargs)
 	else:
-		fig = px.scatter(encodings, x=0, y=1)
+		fig = px.scatter(encodings, x=0, y=1, *scatter_kwargs)
 	
 	fig.update_traces(marker=dict(size=2, opacity=0.7))
 	fig.update_layout(showlegend=False)

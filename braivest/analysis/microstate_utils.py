@@ -2,7 +2,7 @@ from numpy.lib.stride_tricks import sliding_window_view
 from scipy.stats import mode
 import numpy as np
 import seaborn as sns
-from hmm_utils import get_labels
+from braivest.analysis.hmm_utils import get_hmm_labels
 import matplotlib.pyplot as plt
 
 def get_microstates(sess_labels, num_states, window_size=15, ratio=2/3):
@@ -22,10 +22,10 @@ def get_microstates(sess_labels, num_states, window_size=15, ratio=2/3):
             states[(i,j)] = []
     windows = sliding_window_view(sess_labels, window_size)
     modes, counts = mode(windows, axis=1)
-    for i in range(window_size2, len(windows) - window_size/2):
-        if counts[i-window_size/2] > ratio*window_size:
-            if modes[i-window_size/2] != sess_labels[i]:
-                states[(modes[i-window_size/2][0], sess_labels[i])].append(i)
+    for i in range(int(window_size/2), int(len(windows) - window_size/2)):
+        if counts[int(i-window_size/2)] > ratio*window_size:
+            if modes[int(i-window_size/2)] != sess_labels[i]:
+                states[(modes[int(i-window_size/2)][0], sess_labels[i])].append(i)
     return states
 
 def get_transitions(sess_labels, state1, state2, window_size=20):
@@ -45,9 +45,12 @@ def get_transitions(sess_labels, state1, state2, window_size=20):
     windows = sliding_window_view(modes, window_size)
     window_modes, window_counts = mode(windows, axis=1)
     transitions = []
-    for i in range(15, len(windows)-window_size/2):
-        if window_modes[i-window_size/2] == state1 and window_counts[i-window_size/2] > window_size/2 and window_modes[i+window_size/2] == state2 and window_counts[i+window_size/2] > window_size/2:
-            transitions.append(i+window_size/2)
+    for i in range(15, int(len(windows)-window_size/2)):
+        if (window_modes[int(i-window_size/2)] == state1 and 
+            window_counts[int(i-window_size/2)] > window_size/2 and 
+            window_modes[int(i+window_size/2)] == state2 and 
+            window_counts[int(i+window_size/2)] > window_size/2):
+            transitions.append(int(i+window_size/2))
     return transitions
 
 def plot_microstates_table(sess_labels, num_states, window_size=15, ratio=2/3, mapping=None, labels=None):
@@ -65,12 +68,11 @@ def plot_microstates_table(sess_labels, num_states, window_size=15, ratio=2/3, m
     - figure
     """
     states_table = np.zeros((num_states, num_states))
-    states_labels_flat =  np.concatenate(sess_labels, axis=None)
-    states_indices = get_microstates(states_labels_flat, num_states, window_size, ratio)
+    states_indices = get_microstates(sess_labels, num_states, window_size, ratio)
     for i in range(num_states):
         for j in range(num_states):
             if i != j:
-                states_table[i,j] = len(states_indices[(i, j)])/np.sum(states_labels_flat==i)
+                states_table[i,j] = len(states_indices[(i, j)])/np.sum(sess_labels==i)
     if mapping:
         states_mapped = np.zeros((num_states, num_states))
         for i in range(num_states):
@@ -82,7 +84,7 @@ def plot_microstates_table(sess_labels, num_states, window_size=15, ratio=2/3, m
     return states_mapped, plt.gcf()
 
 def get_microstates_probes(subject_sess, model, hmm, num_probes):
-"""
+    """
     Get all types of microstates from all probes for a session.
     Inputs:
     - subject_sess (dtype: list): A list of session data for each probe.
@@ -91,25 +93,25 @@ def get_microstates_probes(subject_sess, model, hmm, num_probes):
     - num_probes (dtype: int): the number of probes
     Returns:
     - list of dictionaries containing microstate indices
-"""
+    """
     microstates = []
     for probe in range(num_probes):
-        labels = get_labels(subject_sess[probe], model, hmm, probe)
+        labels = get_hmm_labels(subject_sess[probe], model, hmm, probe)
         microstates_indices = get_microstates(labels, hmm.K)
         microstates.append(microstates_indices)
     return microstates
 
 def get_comicrostates(microstates, micro_type, mapping=None, num_probes=14):
-"""
-Get comicrostates heatmap for a certain microstate type
-Inputs:
-- microstates (dtype: list of dictionaries): Precalculated microstate indices from get_mirostates_probes
-- microtype (dtype: tuple): The microstate type (i.e. (0, 1))
-- mapping (dtype: list, default=None): mapping to determine order of rows/cols in heatmap
-- num_probes (dtype: int, default=14): number of probes
-Returns:
-- heatmap of comicrostates as np.ndarray
-"""
+    """
+    Get comicrostates heatmap for a certain microstate type
+    Inputs:
+    - microstates (dtype: list of dictionaries): Precalculated microstate indices from get_mirostates_probes
+    - microtype (dtype: tuple): The microstate type (i.e. (0, 1))
+    - mapping (dtype: list, default=None): mapping to determine order of rows/cols in heatmap
+    - num_probes (dtype: int, default=14): number of probes
+    Returns:
+    - heatmap of comicrostates as np.ndarray
+    """
     comicrostates = np.zeros((num_probes, num_probes))
     for i in range(num_probes):
         for j in range(num_probes):

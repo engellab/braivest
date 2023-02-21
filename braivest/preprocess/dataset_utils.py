@@ -23,7 +23,7 @@ def bin_data(data, original_sample, sampling_rate):
 		return rec_sub
 	return data
 
-def find_artifacts(signal, threshold, sample_rateio):
+def find_artifacts(signal, threshold=1.4, sample_ratio=2000):
 	"""
 	A helper function to find indices of artifacts in the data based on an amplitude threshold.
 	Input: 
