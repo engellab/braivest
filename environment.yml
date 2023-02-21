@@ -1,0 +1,11 @@
+name: braivest
+channels:
+  - defaults
+dependencies:
+  - scikit-learn
+  - plotly
+  - yaml
+  - matplotlib
+  - jupyter
+  - natsort
+  - dash
