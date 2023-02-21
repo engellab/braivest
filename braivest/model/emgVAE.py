@@ -42,7 +42,7 @@ class emgVAE(keras.Model):
 		z = self.encode(inputs)
 		return self.decoder(z)
 
-	def encode(self, inputs):
+	def encode(self, inputs, numpy=False):
 		"""
 		Pass the data through the input to get the latent representation.
 		Inputs:
@@ -54,8 +54,10 @@ class emgVAE(keras.Model):
 		z = self.encoder(inputs)
 		if self.emg:
 			temp = tf.concat((z, tf.expand_dims(inputs[:, -1], 1)), axis=1)
-			return temp
-		return tf.convert_to_tensor(z).numpy()
+			z=temp
+		if numpy:
+			return tf.convert_to_tensor(z).numpy()
+		return z
 
 
 	def train_step(self, data):
