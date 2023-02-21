@@ -10,11 +10,26 @@ def butter_highpass(cutoff, fs, order=5):
 	return b, a
 
 def butter_highpass_filter(data, cutoff, fs, order=5):
+	"""
+	Highpass filter some data
+	Inputs: 
+
+	"""
 	b, a = butter_highpass(cutoff, fs, order=order)
 	y = lfilter(b, a, data)
 	return y
 
 def get_wavelet_freqs(start_freq, end_freq, n_bands):
+	"""
+	Inputs:
+	Find frequencies in log space from given start and end frequencies.
+	start_freq (dtype: float): starting frequency
+	end_freq (dtype: float): ending frequency
+	n_bands (dtype: int): number of frequencies
+
+	Returns:
+	- computed frequencies
+	"""
 	freqs = np.logspace(np.log10(start_freq), np.log10(end_freq), n_bands)
 	return freqs
 
