@@ -57,14 +57,13 @@ class Trainer():
 		self.train_set = (x_train, y_train)
 		self.val_set = (x_val, y_val)
 	
-	def train(self, train_set=None, val_set=None, wandb=False, custom_callback=False, save_model=True, save_best_only=True, save_dir = None, train_kwargs = {}, save_kwargs = {}):
+	def train(self, train_set=None, val_set=None, wandb=False, save_model=True, save_best_only=True, save_dir = None, train_kwargs = {}, save_kwargs = {}):
 		"""
 			Train the model.
 			Input:
 				train_set (dtype: tuple of (train_X, train_Y)): If a dataset was not loaded with the artifact, a training set can be provided.
 				val_set (dtype: tuple of (val_X, val_Y)): optional validation set. 
 				wandb (dtype: boolean): Whether to use wandb to train the model
-				custom_callback (dtype: boolean): Whether to use the custom callback in wandb_callbacks
 				save_model (dtype: boolean): Whether or not to save the model every epoch.
 				train_kwargs (dtype: dict)
 				save_kwargs (dtype: dict)
@@ -75,18 +74,16 @@ class Trainer():
 			self.train_set = train_set
 		if val_set is not None: 
 			self.val_set = val_set
+		callbacks = []
 		if wandb:
-			wandb_callback = WandbCallback(save_model=False, save_weights_only=True)
+			wandb_callback = WandbCallback(save_model=False)
 			callbacks = [wandb_callback]
-			if not save_best_only:
-				save_callback = tf.keras.callbacks.ModelCheckpoint(save_dir, save_weights_only=True, save_best_only=False, **save_kwargs)
-				callbacks.append(save_callback)
-		else:
+		if save_model:
 			if save_dir is None:
-				print("No save directory provided!")
-				callbacks = []
+					print("No save directory provided!")
 			else:
-				save_callback = tf.keras.callbacks.ModelCheckpoint(save_dir, save_weights_only=True, save_best_only=save_best_only, **save_kwargs)
+				save_callback = tf.keras.callbacks.ModelCheckpoint(os.path.join(save_dir, "model_{epoch:02d}.h5"), save_weights_only=True, save_best_only=save_best_only, **save_kwargs)
+				callbacks.append(save_callback)
 		history = self.model.fit(self.train_set[0], self.train_set[1], epochs=self.config.epochs, batch_size=self.config.batch_size,
 				validation_data=self.val_set, callbacks=callbacks, **train_kwargs)
 		return history.history
