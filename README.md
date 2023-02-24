@@ -13,13 +13,17 @@ Why use braivest?
 
 Environment
 
-We recommend using a conda or virtualenv environment for braivest. Environment yaml and requirements.txt files are provided. In addition, please install tensorflow and tensorflow-probability with instructions from the website.
+We recommend using a conda or virtualenv environment for braivest. Environment yaml file is provided. In addition, please install tensorflow and tensorflow-probability with instructions from the website.
 
 GPU setup
 
 We recommend using a machine with access to GPU nodes for training of models. Our models are written using Tensorflow and Tensorflow probability. Please refer to the Tensorflow documentation to learn how to set up your GPU for use.
 
+Installing the package
 
+```
+pip install braivest 
+```
 
 ## Preprocessing your data
 
