@@ -1,6 +1,7 @@
 # braivest - BRAIn STate VAE
 
-Welcome to braivest! Braivest is a package for analyzing brain state data based on Variational Autoencoders (VAEs). Learn more by reading our paper here:
+Welcome to braivest! Braivest is a package for analyzing brain state data based on Variational Autoencoders (VAEs). 
+Learn more by reading our paper here:
 
 Why use braivest?
 
@@ -11,15 +12,15 @@ Why use braivest?
 
 ## Setup & Installation
 
-Environment
+### Environment
 
 We recommend using a conda or virtualenv environment for braivest. Environment yaml file is provided. In addition, please install tensorflow and tensorflow-probability with instructions from the website.
 
-GPU setup
+### GPU setup
 
 We recommend using a machine with access to GPU nodes for training of models. Our models are written using Tensorflow and Tensorflow probability. Please refer to the Tensorflow documentation to learn how to set up your GPU for use.
 
-Installing the package
+### Installing the package
 
 ```
 pip install braivest 
