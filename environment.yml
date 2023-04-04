@@ -1,4 +1,4 @@
-name: braivest
+name: bs2
 channels:
   - defaults
 dependencies:
@@ -9,3 +9,6 @@ dependencies:
   - jupyter
   - natsort
   - dash
+  - pip:
+          - PyWavelets
+prefix: /home/julia/miniconda3/envs/bs2
