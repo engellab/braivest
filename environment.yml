@@ -1,4 +1,4 @@
-name: bs2
+name: braivest
 channels:
   - defaults
 dependencies:
@@ -11,4 +11,5 @@ dependencies:
   - dash
   - pip:
           - PyWavelets
+          - datajoint
 prefix: /home/julia/miniconda3/envs/bs2
