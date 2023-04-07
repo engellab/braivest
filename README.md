@@ -23,7 +23,7 @@ We recommend using a machine with access to GPU nodes for training of models. Ou
 ### Installing the package
 
 ```
-pip install braivest 
+pip install .
 ```
 
 ## Preprocessing your data
