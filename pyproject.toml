@@ -1,5 +1,5 @@
 [project]
-name = "braivest_juliawang22"
+name = "braivest"
 version = "0.0.1"
 authors = [
   { name="Julia Wang", email="julwang@cshl.edu" },
