@@ -35,6 +35,9 @@ parameters_dict = {
     'time':{
         'value': False
     },
+    'emg': {
+        'value': True
+    },
     'save_best':{
         'value': False
     }
