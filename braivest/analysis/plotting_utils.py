@@ -72,3 +72,14 @@ def get_feature_color(Pxx, f, start, stop):
 	"""
 	return zscore(np.trapz(Pxx[:, start:stop], f[start:stop], axis=1)/np.trapz(Pxx, f, axis=1))
 
+def make_figure_nice(fig):
+    fig.update_layout({
+    'plot_bgcolor': 'rgba(0, 0, 0, 0)',
+    'paper_bgcolor': 'rgba(0, 0, 0, 0)',
+    })
+    fig.update_xaxes(showgrid=False, zeroline=False,  showline=True, linewidth=0.5, linecolor='black', ticks='outside')
+    fig.update_yaxes(showgrid=False, zeroline = False, showline=True, linewidth=0.5, linecolor='black', ticks='outside')
+    fig.update_xaxes(title_font=dict(size=8, family='Helvetica'))
+    fig.update_yaxes(title_font=dict(size=8, family='Helvetica'))
+    fig.update_layout(showlegend=False)
+    return fig
