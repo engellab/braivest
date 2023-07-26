@@ -48,7 +48,7 @@ parameters_dict.update({
     'epochs': {
         'value': 1000},
     'data_artifact': {
-        'value': 'juliahwang/lfp_VAE/somato10_subject0:v6'
+        'value': 'juliahwang/braivest_tutorial/training_set:v0'
     },
     })
-sweep_id = wandb.sweep(sweep_config, project="lfp_VAE")
+sweep_id = wandb.sweep(sweep_config, project="YOUR PROJECT HERE")
