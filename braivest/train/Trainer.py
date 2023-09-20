@@ -57,7 +57,7 @@ class Trainer():
 		self.train_set = (x_train, y_train)
 		self.val_set = (x_val, y_val)
 	
-	def train(self, train_set=None, val_set=None, wandb=False, save_model=True, save_best_only=True, save_dir = None, train_kwargs = {}, save_kwargs = {}):
+	def train(self, train_set=None, val_set=None, wandb=False, save_model=True, save_best_only=True, save_dir = None, train_kwargs = {}, save_kwargs = {}, custom_callbacks=[]):
 		"""
 			Train the model.
 			Input:
@@ -74,10 +74,10 @@ class Trainer():
 			self.train_set = train_set
 		if val_set is not None: 
 			self.val_set = val_set
-		callbacks = []
+		callbacks = custom_callbacks
 		if wandb:
 			wandb_callback = WandbCallback(save_model=False)
-			callbacks = [wandb_callback]
+			callbacks.append(wandb_callback)
 		if save_model:
 			if save_dir is None:
 					print("No save directory provided!")
