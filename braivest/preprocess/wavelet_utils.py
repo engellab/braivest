@@ -2,6 +2,7 @@ import pywt
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.signal import butter, lfilter, freqz
+from scipy.stats import zscore
 
 def butter_highpass(cutoff, fs, order=5):
 	nyq = 0.5 * fs
@@ -38,7 +39,7 @@ def pywt_frequency2scale(wavelet,frequencies,sampling_rate):
 	Pywt helper function Given wavelet wavelet_name, range of frequencies along with sampling rate for a given signal, 
 	returns the scales that would capture these frequencies. 
 	Input:
-		wavelet: (dtype: string), wavelet name
+		wavelet: (dtype: string), wavelet name: example 'cmor1.5-1.0'
 		frequencies: (dtype: list of floats), desired frequencies for the wavelets
 		sampling_rate: (dtype: float), sampling rate of raw data
 	Returns:
@@ -56,7 +57,7 @@ def pywt_frequency2scale(wavelet,frequencies,sampling_rate):
 		scales.append(scale)
 	return scales
 
-def calculate_wavelet_coeffs(recording, wavelet_name, scales, sampling_rate, highpass=0, zscore=True):
+def calculate_wavelet_coeffs(recording, wavelet_name, scales, sampling_rate, highpass=0, z_score=True):
 	""" 
 	Calculate the wavelet coefficients of a signal. See pywt for more reference.
 	Input: 
@@ -72,7 +73,7 @@ def calculate_wavelet_coeffs(recording, wavelet_name, scales, sampling_rate, hig
 	recording[np.isnan(recording)] = np.nanmax(recording)
 	if highpass > 0:
 		recording = butter_highpass_filter(recording, highpass, sampling_rate, 6)
-	if zscore:
+	if z_score:
 		recording = zscore(recording, nan_policy='omit')
 	[coefficients, frequencies] = pywt.cwt(recording, scales, wavelet_name, 1.0/sampling_rate)
 	return coefficients, frequencies
