@@ -61,7 +61,7 @@ def calculate_wavelet_coeffs(recording, wavelet_name, scales, sampling_rate, hig
 	""" 
 	Calculate the wavelet coefficients of a signal. See pywt for more reference.
 	Input: 
-		recording: (dtype: ndarray) the input signal
+		recording: (dtype: ndarray) the input signal as 1-D array 
 		wavelet_name: (dtype: string) the name the wavelet
 		sampling_rate: (dtype: float) the sample rate of the input signal
 		highpass: (dtype: float, default=0), a frequency threshold to highpass the data
@@ -76,14 +76,14 @@ def calculate_wavelet_coeffs(recording, wavelet_name, scales, sampling_rate, hig
 	if z_score:
 		recording = zscore(recording, nan_policy='omit')
 	[coefficients, frequencies] = pywt.cwt(recording, scales, wavelet_name, 1.0/sampling_rate)
-	return coefficients, frequencies
+	return coefficients.T, frequencies #want data to be of shape (time, scales)
 
 def calculate_wavelet_power(coefficients, subsample= 1):
 	"""
 	Calculate wavelet power from wavelet coefficients.
 	Input:
-		 coefficient (dtype: ndarray): wavelet coefficients calculated using calculate_wavelet_coeffs
-		 subsample (dtype: int, default=1): Factor to subsample the coefficients
+		 coefficient (dtype: ndarray): wavelet coefficients calculated using calculate_wavelet_coeffs with shape (time, scales)
+		 subsample (dtype: int, default=1): Factor to subsample the coefficients in time
 	Returns:
 		The wavelet power (dtype: ndarray)
 	"""
