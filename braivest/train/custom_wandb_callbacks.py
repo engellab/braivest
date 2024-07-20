@@ -4,10 +4,10 @@ import tensorflow as tf
 from sklearn.cluster import KMeans, SpectralClustering
 from sklearn import metrics
 from sklearn.neighbors import KernelDensity
-from tensorflow import keras
 import numpy as np
 from scipy.stats import skew, kurtosis
-from tensorflow.keras.losses import MeanSquaredError
+import tf_keras as keras
+from keras.losses import MeanSquaredError
 from scipy.stats import entropy
 
 def distribution_metrics_labels(encodings, hypno):
@@ -60,7 +60,7 @@ class CustomWandbCallback(keras.callbacks.Callback):
         self.validation_data = validation_data
         self.plot = plot
 
-    def on_epoch_end(self, epoch, logs=None, ):
+    def on_epoch_end(self, epoch, logs=None):
         if epoch < 10 or epoch % 20 == 0:
             encodings = self.get_encodings()
             if self.plot:

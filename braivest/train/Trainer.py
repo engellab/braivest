@@ -1,10 +1,10 @@
 import tensorflow as tf
+import tf_keras as keras
 import numpy as np
 import sys
 import wandb
 from sklearn.model_selection import train_test_split
 from wandb.keras import WandbCallback
-from tensorflow.keras.callbacks import ModelCheckpoint
 import os
 from braivest.model.emgVAE import emgVAE
 from braivest.utils import load_data
@@ -35,9 +35,9 @@ class Trainer():
 			test_size (dtype: float): The fraction of data to 
 		"""
 		self.config = config
-		layers = [config.layer_dims for layer in range(config.num_layers)]
-		self.model = emgVAE(input_dim, config.latent, layers, config.kl, emg = config.emg)
-		self.model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=config.lr), loss='mse', metrics = ['mse'])
+		layers = [config['layer_dims'] for layer in range(config['num_layers'])]
+		self.model = emgVAE(input_dim, config['latent'], layers, config['kl'], emg = config['emg'])
+		self.model.compile(optimizer=keras.optimizers.Adam(learning_rate=config['lr']), loss='mse', metrics = ['mse'])
 
 	def load_dataset(self, dataset_dir, val_size=0.2):
 		"""
@@ -46,7 +46,7 @@ class Trainer():
 			dataset_dir (dtype: string): The relative path of the dataset directory. Should contain file "train.npy", and if applicable, "train_Y.npy" and "hypno.npy"
 			val_size (dtype: float, default=0.2): The percent of the data to use as a validation set
 		"""
-		if self.config.time:
+		if self.config['time']:
 			train_X = load_data(dataset_dir, 'train.npy')
 			train_Y = load_data(dataset_dir, 'train_Y.npy')
 			train_set = (train_X, train_Y)
@@ -82,8 +82,8 @@ class Trainer():
 			if save_dir is None:
 					print("No save directory provided!")
 			else:
-				save_callback = tf.keras.callbacks.ModelCheckpoint(os.path.join(save_dir, "model_{epoch:02d}.h5"), save_weights_only=True, save_best_only=save_best_only, **save_kwargs)
+				save_callback = keras.callbacks.ModelCheckpoint(os.path.join(save_dir, "model_{epoch:02d}.h5"), save_weights_only=True, save_best_only=save_best_only, **save_kwargs)
 				callbacks.append(save_callback)
-		history = self.model.fit(self.train_set[0], self.train_set[1], epochs=self.config.epochs, batch_size=self.config.batch_size,
+		history = self.model.fit(self.train_set[0], self.train_set[1], epochs=self.config['epochs'], batch_size=self.config['batch_size'],
 				validation_data=self.val_set, callbacks=callbacks, **train_kwargs)
 		return history.history

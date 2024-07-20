@@ -1,5 +1,5 @@
 import tensorflow as tf
-import tensorflow.keras as keras
+import tf_keras as keras
 import tensorflow_probability as tfp
 import numpy as np
 
@@ -20,18 +20,18 @@ class emgVAE(keras.Model):
 		else:
 			self.latent_dim = latent_dim
 		self.prior = tfp.distributions.MultivariateNormalDiag(loc=tf.zeros(self.latent_dim))
-		self.encoder = tf.keras.Sequential()
-		self.encoder.add(tf.keras.layers.InputLayer(input_shape=(self.input_dim,)))
+		self.encoder = keras.Sequential()
+		self.encoder.add(keras.layers.InputLayer(input_shape=(self.input_dim,)))
 		for n_units in hidden_states:
-			self.encoder.add(tf.keras.layers.Dense(n_units, activation='relu'))
+			self.encoder.add(keras.layers.Dense(n_units, activation='relu'))
 
-		self.encoder.add(tf.keras.layers.Dense(tfp.layers.MultivariateNormalTriL.params_size(self.latent_dim),activation=None, name='z'))
+		self.encoder.add(keras.layers.Dense(tfp.layers.MultivariateNormalTriL.params_size(self.latent_dim),activation=None, name='z'))
 		self.encoder.add(tfp.layers.MultivariateNormalTriL(self.latent_dim , convert_to_tensor_fn=tfp.distributions.Distribution.sample, name='z_layer'))
 		self.encoder.add(tfp.layers.KLDivergenceAddLoss(self.prior, weight=kl))
-		self.decoder = tf.keras.Sequential()
+		self.decoder = keras.Sequential()
 		for n_units in hidden_states:
-			self.decoder.add(tf.keras.layers.Dense(n_units, activation='relu'))
-		self.decoder.add(tf.keras.layers.Dense(self.input_dim))
+			self.decoder.add(keras.layers.Dense(n_units, activation='relu'))
+		self.decoder.add(keras.layers.Dense(self.input_dim))
 
 		self.loss_tracker = keras.metrics.Mean(name="loss")
 		self.neighbor_loss_tracker = keras.metrics.Mean(name="neighbor_loss")
