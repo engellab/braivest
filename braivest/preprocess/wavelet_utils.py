@@ -72,17 +72,17 @@ def calculate_wavelet_coeffs(recording, wavelet_name, scales, sampling_rate, hig
 	"""
 	recording[np.isnan(recording)] = np.nanmax(recording)
 	if highpass > 0:
-		recording = butter_highpass_filter(recording, highpass, sampling_rate, 6)
+		recording = butter_highpass_filter(recording, highpass, sampling_rate)
 	if z_score:
 		recording = zscore(recording, nan_policy='omit')
 	[coefficients, frequencies] = pywt.cwt(recording, scales, wavelet_name, 1.0/sampling_rate)
-	return coefficients.T, frequencies #want data to be of shape (time, scales)
+	return coefficients.T, frequencies #want data to be of shape (nsamples, scales)
 
 def calculate_wavelet_power(coefficients, subsample= 1):
 	"""
 	Calculate wavelet power from wavelet coefficients.
 	Input:
-		 coefficient (dtype: ndarray): wavelet coefficients calculated using calculate_wavelet_coeffs with shape (time, scales)
+		 coefficient (dtype: ndarray): wavelet coefficients calculated using calculate_wavelet_coeffs with shape (nsamples, scales)
 		 subsample (dtype: int, default=1): Factor to subsample the coefficients in time
 	Returns:
 		The wavelet power (dtype: ndarray)
