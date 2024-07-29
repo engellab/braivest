@@ -14,7 +14,7 @@ Why use braivest?
 
 ### Environment
 
-We recommend using a conda or virtualenv environment for braivest. Environment yaml file is provided. In addition, please install tensorflow and tensorflow-probability with instructions from the website.
+We recommend using a conda or virtualenv environment for braivest. Environment yaml file is provided. In addition, please install tensorflow and tensorflow-probability with instructions from the website. Currently, only tensorflow 2.15.0 and tensorflow-probability 0.23.0 are supported. Higher versions have keras dependency issues.
 
 ### GPU setup
 
