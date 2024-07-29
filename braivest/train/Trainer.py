@@ -1,13 +1,13 @@
 import tensorflow as tf
-import tf_keras as keras
+import tensorflow.keras as keras
 import numpy as np
 import sys
 import wandb
 from sklearn.model_selection import train_test_split
-from wandb.keras import WandbCallback
 import os
 from braivest.model.emgVAE import emgVAE
 from braivest.utils import load_data
+from wandb.keras import WandbCallback
 
 
 """
@@ -87,3 +87,4 @@ class Trainer():
 		history = self.model.fit(self.train_set[0], self.train_set[1], epochs=self.config['epochs'], batch_size=self.config['batch_size'],
 				validation_data=self.val_set, callbacks=callbacks, **train_kwargs)
 		return history.history
+ 

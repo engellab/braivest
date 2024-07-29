@@ -1,5 +1,5 @@
 import tensorflow as tf
-import tf_keras as keras
+import tensorflow.keras as keras
 import tensorflow_probability as tfp
 import numpy as np
 
