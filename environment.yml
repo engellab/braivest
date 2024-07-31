@@ -9,6 +9,8 @@ dependencies:
   - jupyter
   - natsort
   - dash
+  - cython
+  - pyvis
   - pip:
           - PyWavelets
           - datajoint
