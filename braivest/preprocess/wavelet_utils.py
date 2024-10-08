@@ -141,7 +141,7 @@ def calculate_wavelet_coeffs(recording, wavelet_name, scales, sampling_rate, hig
 		coefficients = np.concatenate(coefficients, axis=1)
 	return coefficients.T, frequencies #want data to be of shape (nsamples, scales)
 
-def calculate_wavelet_power(coefficients, subsample= 1):
+def calculate_wavelet_power(coefficients, subsample= 1, nan_policy='remove'):
 	"""
 	Calculate wavelet power from wavelet coefficients.
 	Input:
