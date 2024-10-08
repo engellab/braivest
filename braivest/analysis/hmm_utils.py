@@ -8,7 +8,31 @@ import matplotlib.pyplot as plt
 from pyvis.network import Network
 import seaborn as sns
 
-def hmm_cross_val(clusters, datasets, n_repeats=3, ind_mask=None):
+def choose_best_hmm(cluster_choices, datasets, n_repeats=3, ind_mask=None, threshold=0.05, num_iters=50, method="em", init_method="kmeans"):
+    """
+    Choose the best HMM model based on cross-validation
+    Inputs:
+    - cluster_choices (dtype: list): List of number of clusters to try
+    - datasets (dtype: list): List of datasets (continuous 2-D encodings)
+    - n_repeats (dtype: int, default: 3): Number of repeats to do cross-validation
+    - ind_mask: (dtype: array-like, default: None) Array that specifies for each dataset which probe it is from for training MultiHMM only.
+    - threshold: (dtype: float, default: 0.05) Threshold for the difference in test scores to stop training
+    Returns:
+    - The best HMM model
+    - The best number of clusters
+    - The training scores
+    - The testing scores
+    """
+
+    all_hmms = []
+    avg_test_scores = []
+    for clusters in cluster_choices:
+        hmm, train_scores, test_scores = hmm_cross_val(clusters, datasets, n_repeats=n_repeats, ind_mask=ind_mask, num_iters=num_iters, method=method, init_method=init_method)
+        all_hmms.append(hmm)
+        avg_test_scores.append(np.mean(test_scores))
+    return all_hmms, avg_test_scores
+
+def hmm_cross_val(clusters, datasets, n_repeats=3, ind_mask=None, num_iters=50, init_method="kmeans", method="em"):
     """
     Cross validation for training of HMM
     Inputs:
@@ -23,6 +47,7 @@ def hmm_cross_val(clusters, datasets, n_repeats=3, ind_mask=None):
     """
     train_scores = []
     test_scores = []
+    all_hmms = []
     for repeat in range(n_repeats):
         train_inds = np.random.choice(len(datasets), size=int(len(datasets)*0.8), replace=False).astype("int")
         train_data = [datasets[i] for i in train_inds]
@@ -30,14 +55,19 @@ def hmm_cross_val(clusters, datasets, n_repeats=3, ind_mask=None):
         if ind_mask:
             test_mask = [ind_mask[i] for i in range(len(datasets)) if i not in train_inds]
             train_mask = [ind_mask[i] for i in train_inds]
-            hmm = MultiHMM(K=clusters, D=2, N=3)
-            hmm.fit(train_data, ind_mask=train_mask, method="em")
+            hmm = MultiHMM(K=clusters, D=2, N=np.max(ind_mask)+1) #N is number of probes
+            hmm.fit(train_data, ind_mask=train_mask, method=method, init_method=init_method)
+            train_scores.append(hmm.log_likelihood(train_data, ind_mask=train_mask)/np.sum([len(train_data[i]) for i in range(len(train_data))]))
+            test_scores.append(hmm.log_likelihood(test_data, ind_mask = test_mask)/np.sum([len(test_data[i]) for i in range(len(test_data))]))
         else:
             hmm = HMM(K=clusters, D=2)
-            hmm.fit(train_data, method="em", num_iters=50, init_method="kmeans")
-        train_scores.append(hmm.log_likelihood(train_data, ind_mask=train_mask)/np.sum([len(train_data[i]) for i in range(len(train_data))]))
-        test_scores.append(hmm.log_likelihood(test_data, ind_mask = test_mask)/np.sum([len(test_data[i]) for i in range(len(test_data))]))
-    return hmm, train_scores, test_scores
+            hmm.fit(train_data, method=method, init_method=init_method, num_iters=num_iters)
+            train_scores.append(hmm.log_likelihood(train_data)/np.sum([len(train_data[i]) for i in range(len(train_data))]))
+            test_score = hmm.log_likelihood(test_data)/np.sum([len(test_data[i]) for i in range(len(test_data))])
+            test_scores.append(test_score)
+            all_hmms.append(hmm)
+    best_hmm = all_hmms[np.argmax(test_scores)]
+    return best_hmm, train_scores, test_scores
 
 def get_hmm_labels(hmm, encodings_list, trans_ind=None):
     """
