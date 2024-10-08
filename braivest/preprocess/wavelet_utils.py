@@ -128,6 +128,7 @@ def calculate_wavelet_coeffs(recording, wavelet_name, scales, sampling_rate, hig
 		if z_score:
 			recording = zscore(recording, nan_policy='omit')
 		recording_splits = np.split(recording, np.where(np.isnan(recording))[0])
+		del recording
 		coefficients = []
 		for split in recording_splits:
 			if len(split) > 1:
