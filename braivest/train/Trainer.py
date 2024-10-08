@@ -36,6 +36,7 @@ class Trainer():
 		"""
 		self.config = config
 		layers = [config['layer_dims'] for layer in range(config['num_layers'])]
+		self.input_dim = input_dim
 		self.model = emgVAE(input_dim, config['latent'], layers, config['kl'], emg = config['emg'])
 		self.model.compile(optimizer=keras.optimizers.Adam(learning_rate=config['lr']), loss='mse', metrics = ['mse'])
 
@@ -47,15 +48,22 @@ class Trainer():
 			val_size (dtype: float, default=0.2): The percent of the data to use as a validation set
 		"""
 		if self.config['time']:
-			train_X = load_data(dataset_dir, 'train.npy')
-			train_Y = load_data(dataset_dir, 'train_Y.npy')
-			train_set = (train_X, train_Y)
+			train_X = np.load(os.path.join(dataset_dir, 'train.npy'), mmap_mode='r')
+			train_Y = np.load(os.path.join(dataset_dir, 'train_Y.npy'), mmap_mode='r')
+			def gen():
+				for i in range(0, train_X.shape[0], self.config['batch_size']):
+					yield train_X[i:i+self.config['batch_size'], :], train_Y[i:i+self.config['batch_size'], :]
 		else:
-			train_X = load_data(dataset_dir, 'train.npy')
-			train_set = (train_X, train_X)
-		x_train, x_val, y_train, y_val = train_test_split(train_set[0], train_set[1], test_size=val_size, shuffle=True)
-		self.train_set = (x_train, y_train)
-		self.val_set = (x_val, y_val)
+			train_X = np.load(os.path.join(dataset_dir, 'train.npy'),mmap_mode='r')
+			def gen():
+				for i in range(0, train_X.shape[0], self.config['batch_size']):
+					yield train_X[i:i+self.config['batch_size'], :], train_X[i:i+self.config['batch_size'], :]
+		train_set = tf.data.Dataset.from_generator(gen, output_signature=(
+         tf.TensorSpec(shape=(None,self.input_dim), dtype=tf.float64),
+         tf.TensorSpec(shape=(None,self.input_dim), dtype=tf.float64)))
+		train_set = train_set.shuffle(buffer_size=train_set.cardinality())
+		self.train_set = train_set.take(int(0.8*train_X.shape[0]))
+		self.val_set = train_set.skip(int(0.8*train_X.shape[0]))
 	
 	def train(self, train_set=None, val_set=None, wandb=False, save_model=True, save_best_only=True, save_dir = None, train_kwargs = {}, save_kwargs = {}, custom_callbacks=[]):
 		"""
@@ -84,7 +92,7 @@ class Trainer():
 			else:
 				save_callback = keras.callbacks.ModelCheckpoint(os.path.join(save_dir, "model_{epoch:02d}.h5"), save_weights_only=True, save_best_only=save_best_only, **save_kwargs)
 				callbacks.append(save_callback)
-		history = self.model.fit(self.train_set[0], self.train_set[1], epochs=self.config['epochs'], batch_size=self.config['batch_size'],
+		history = self.model.fit(self.train_set, epochs=self.config['epochs'],
 				validation_data=self.val_set, callbacks=callbacks, **train_kwargs)
 		return history.history
  
