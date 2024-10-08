@@ -4,6 +4,53 @@ import matplotlib.pyplot as plt
 from scipy.signal import butter, lfilter, freqz
 from scipy.stats import zscore
 
+def butter_filter(data, lowcut=None, highcut=None, fs=1, order=5, axis=-1):
+	"""
+	Butterworth filter some data
+	Inputs: 
+		data (dtype: ndarray): the input signal as 1-D array 
+		lowcut (dtype: float): lowcut frequency
+		highcut (dtype: float): highcut frequency
+		fs (dtype: float): the sample rate of the input signal
+		order (dtype: int, default=5): the order of the filter
+	Returns:
+		- filtered data (dtype: ndarray)
+	"""
+	b, a = butter_pass(lowcut, highcut, fs, order=order)
+	y = lfilter(b, a, data, axis=axis)
+	return y
+
+def butter_pass(lowcut=None, highcut=None, fs=1, order=5):
+	"""
+	Butterworth filter some data
+	Inputs: 
+		lowcut (dtype: float): lowcut frequency
+		highcut (dtype: float): highcut frequency
+		fs (dtype: float): the sample rate of the input signal
+		order (dtype: int, default=5): the order of the filter
+	Returns:
+		- b, a coefficients (dtype: tuple)
+	"""
+	nyq = 0.5 * fs
+	if lowcut is not None and highcut is not None:
+		normal_lowcut = lowcut / nyq
+		normal_highcut = highcut / nyq
+		b,a = butter(order,(normal_lowcut, normal_highcut), btype='bandpass', analog=False)
+		return b,a
+	elif lowcut is not None:
+		nyq = 0.5 * fs
+		normal_cutoff = lowcut / nyq
+		b, a = butter(order, normal_cutoff, btype='lowpass', analog=False)
+		return b, a
+	elif highcut is not None:
+		nyq = 0.5 * fs
+		normal_cutoff = highcut / nyq
+		b, a = butter(order, normal_cutoff, btype='highpass', analog=False)
+		return b, a
+	else:
+		raise ValueError("Either lowcut or highcut must be provided")
+
+
 def butter_highpass(cutoff, fs, order=5):
 	nyq = 0.5 * fs
 	normal_cutoff = cutoff / nyq
@@ -12,7 +59,7 @@ def butter_highpass(cutoff, fs, order=5):
 
 def butter_highpass_filter(data, cutoff, fs, order=5):
 	"""
-	Highpass filter some data
+	Lowpass filter some data
 	Inputs: 
 
 	"""
@@ -57,7 +104,7 @@ def pywt_frequency2scale(wavelet,frequencies,sampling_rate):
 		scales.append(scale)
 	return scales
 
-def calculate_wavelet_coeffs(recording, wavelet_name, scales, sampling_rate, highpass=0, z_score=True):
+def calculate_wavelet_coeffs(recording, wavelet_name, scales, sampling_rate, highpass=0, z_score=True, nan_policy='remove'):
 	""" 
 	Calculate the wavelet coefficients of a signal. See pywt for more reference.
 	Input: 
@@ -70,12 +117,28 @@ def calculate_wavelet_coeffs(recording, wavelet_name, scales, sampling_rate, hig
 		- calculated wavelet coefficients (dtype: ndarray)
 		- the frequencies of the calculated wavelets (dtype: ndarray)
 	"""
-	recording[np.isnan(recording)] = np.nanmax(recording)
-	if highpass > 0:
-		recording = butter_highpass_filter(recording, highpass, sampling_rate)
-	if z_score:
-		recording = zscore(recording, nan_policy='omit')
-	[coefficients, frequencies] = pywt.cwt(recording, scales, wavelet_name, 1.0/sampling_rate)
+	if nan_policy =='remove':
+		recording[np.isnan(recording)] = np.nanmax(recording)
+		if highpass > 0:
+			recording = butter_highpass_filter(recording, highpass, sampling_rate)
+		if z_score:
+			recording = zscore(recording, nan_policy='omit')
+		[coefficients, frequencies] = pywt.cwt(recording, scales, wavelet_name, 1.0/sampling_rate)
+	elif nan_policy=='split':
+		if z_score:
+			recording = zscore(recording, nan_policy='omit')
+		recording_splits = np.split(recording, np.where(np.isnan(recording))[0])
+		coefficients = []
+		for split in recording_splits:
+			if len(split) > 1:
+				if highpass > 0:
+					split = butter_highpass_filter(split, highpass, sampling_rate)
+				[split_coefficients, frequencies] = pywt.cwt(split, scales, wavelet_name, 1.0/sampling_rate)
+			else:
+				split_coefficients = np.empty((len(scales), 1))
+				split_coefficients[:] = np.nan
+			coefficients.append(split_coefficients)
+		coefficients = np.concatenate(coefficients, axis=1)
 	return coefficients.T, frequencies #want data to be of shape (nsamples, scales)
 
 def calculate_wavelet_power(coefficients, subsample= 1):
@@ -88,14 +151,9 @@ def calculate_wavelet_power(coefficients, subsample= 1):
 		The wavelet power (dtype: ndarray)
 	"""
 	power = np.log2(np.square(np.abs(coefficients)))
-
-	#replace infinities 
-	power[np.isneginf(power)] = np.min(power[np.isfinite(power)])  
-	power[np.isposinf(power)] = np.max(power[np.isfinite(power)])
-
 	#replace NaNs with medium value
-	power[np.isnan(power)] =  np.mean(power[ ~ np.isnan(power)])
-
+	if nan_policy =='remove':
+		power[np.isnan(power)] =  np.mean(power[ ~ np.isnan(power)])
 	power = power[::subsample, :]
 	return power
 	
