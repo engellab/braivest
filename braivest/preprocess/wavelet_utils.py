@@ -131,14 +131,14 @@ def calculate_wavelet_coeffs(recording, wavelet_name, scales, sampling_rate, hig
 		del recording
 		coefficients = []
 		for split in recording_splits:
+			split_coefficients = np.empty((len(scales), 1))
+			split_coefficients[:] = np.nan
+			coefficients.append(split_coefficients)
 			if len(split) > 1:
 				if highpass > 0:
-					split = butter_highpass_filter(split, highpass, sampling_rate)
+					split = butter_highpass_filter(split[1:], highpass, sampling_rate)
 				[split_coefficients, frequencies] = pywt.cwt(split, scales, wavelet_name, 1.0/sampling_rate)
-			else:
-				split_coefficients = np.empty((len(scales), 1))
-				split_coefficients[:] = np.nan
-			coefficients.append(split_coefficients)
+				coefficients.append(split_coefficients)
 		coefficients = np.concatenate(coefficients, axis=1)
 	return coefficients.T, frequencies #want data to be of shape (nsamples, scales)
 
