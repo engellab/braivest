@@ -131,12 +131,12 @@ def calculate_wavelet_coeffs(recording, wavelet_name, scales, sampling_rate, hig
 		del recording
 		coefficients = []
 		for split in recording_splits:
-			if split[0] == np.nan:
+			if np.isnan(split[0]):
 				split_coefficients = np.empty((len(scales), 1))
 				split_coefficients[:] = np.nan
 				coefficients.append(split_coefficients)
 			if len(split) > 1:
-				if split[0] == np.nan:
+				if np.isnan(split[0]):
 					split = split[1:]
 				if highpass > 0:
 					split = butter_highpass_filter(split, highpass, sampling_rate)
