@@ -4,13 +4,13 @@ import matplotlib.pyplot as plt
 from scipy.signal import butter, lfilter, freqz
 from scipy.stats import zscore
 
-def butter_filter(data, lowcut=None, highcut=None, fs=1, order=5, axis=-1):
+def butter_filter(data, highcut=None, lowcut=None, fs=1, order=5, axis=-1):
 	"""
 	Butterworth filter some data
 	Inputs: 
 		data (dtype: ndarray): the input signal as 1-D array 
-		lowcut (dtype: float): lowcut frequency
-		highcut (dtype: float): highcut frequency
+		lowcut (dtype: float): Frequency to lowpass (i.e. include all frequencies below this)
+		highcut (dtype: float): Frequency to highpass (i.e. include all frequencies above this)
 		fs (dtype: float): the sample rate of the input signal
 		order (dtype: int, default=5): the order of the filter
 	Returns:
@@ -20,12 +20,12 @@ def butter_filter(data, lowcut=None, highcut=None, fs=1, order=5, axis=-1):
 	y = lfilter(b, a, data, axis=axis)
 	return y
 
-def butter_pass(lowcut=None, highcut=None, fs=1, order=5):
+def butter_pass(highcut=None, lowcut=None, fs=1, order=5):
 	"""
 	Butterworth filter some data
 	Inputs: 
-		lowcut (dtype: float): lowcut frequency
-		highcut (dtype: float): highcut frequency
+		lowcut (dtype: float): Frequency to lowpass (i.e. include all frequencies below this)
+		highcut (dtype: float): Frequency to highpass (i.e. include all frequencies above this)
 		fs (dtype: float): the sample rate of the input signal
 		order (dtype: int, default=5): the order of the filter
 	Returns:
@@ -35,7 +35,7 @@ def butter_pass(lowcut=None, highcut=None, fs=1, order=5):
 	if lowcut is not None and highcut is not None:
 		normal_lowcut = lowcut / nyq
 		normal_highcut = highcut / nyq
-		b,a = butter(order,(normal_lowcut, normal_highcut), btype='bandpass', analog=False)
+		b,a = butter(order,(normal_highcut, normal_lowcut), btype='bandpass', analog=False)
 		return b,a
 	elif lowcut is not None:
 		nyq = 0.5 * fs
@@ -59,7 +59,7 @@ def butter_highpass(cutoff, fs, order=5):
 
 def butter_highpass_filter(data, cutoff, fs, order=5):
 	"""
-	Lowpass filter some data
+	Highpass filter some data
 	Inputs: 
 
 	"""
