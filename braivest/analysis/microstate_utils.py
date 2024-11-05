@@ -83,12 +83,11 @@ def plot_microstates_table(sess_labels, num_states, window_size=15, ratio=2/3, m
     sns.heatmap(states_mapped*100, annot=True, xticklabels=labels, yticklabels=labels, cmap = 'Greys')
     return states_mapped, plt.gcf()
 
-def get_microstates_probes(subject_sess, model, hmm, num_probes):
+def get_microstates_probes(encodings, hmm, num_probes):
     """
     Get all types of microstates from all probes for a session.
     Inputs:
-    - subject_sess (dtype: list): A list of session data for each probe.
-    - model: The trained model
+    - encodings (dtype: list): A list of encodings for each probe.
     - HMM : The trained MultiHMM
     - num_probes (dtype: int): the number of probes
     Returns:
@@ -96,7 +95,7 @@ def get_microstates_probes(subject_sess, model, hmm, num_probes):
     """
     microstates = []
     for probe in range(num_probes):
-        labels = get_hmm_labels(subject_sess[probe], model, hmm, probe)
+        labels = get_hmm_labels(hmm, encodings[probe], probe)
         microstates_indices = get_microstates(labels, hmm.K)
         microstates.append(microstates_indices)
     return microstates
