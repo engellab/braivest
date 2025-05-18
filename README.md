@@ -1,7 +1,8 @@
 # braivest - BRAIn STate VAE
 
 Welcome to braivest! Braivest is a package for analyzing brain state data based on Variational Autoencoders (VAEs). 
-Accompanying preprint is coming soon!
+See our [paper](https://pmc.ncbi.nlm.nih.gov/articles/PMC10760197/), published in Unireps (Unifying Representations in Neural Models, Neurips Workshop, 2023): 
+
 
 Why use braivest?
 
