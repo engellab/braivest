@@ -55,6 +55,8 @@ def get_dataset(train_sess, test_sess, run):
 
 	return train, train_Y, test, test_Y, hypnos, ss
 
+# This is for uploading to wandb as an artifact.
+# If you don't want to use wandb, you can remove this function and use the get_dataset function directly.
 def load_and_log(train_sess, test_sess, subject, probes):
 	with wandb.init(project="braivest_tutorial", job_type="load-and-split-data") as run:
 		names = ['train', 'train_Y', 'test','test_Y']
