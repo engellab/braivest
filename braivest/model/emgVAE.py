@@ -2,6 +2,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.distributions import MultivariateNormal
+import torch
+import lightning as L
 
 class Encoder(nn.Module):
     def __init__(self, input_dim, latent_dim, hidden_states):
@@ -54,6 +56,15 @@ class emgVAE(nn.Module):
         std = torch.exp(0.5 * logvar)
         eps = torch.randn_like(std)
         return mu + eps * std
+    
+    def encode(self, x, numpy=False):
+        mu, logvar = self.encoder(x)
+        z = self.reparameterize(mu, logvar)
+        if self.emg:
+            z = torch.cat([z, x[:, -1:].detach()], dim=1)
+        if numpy:
+            return z.detach().cpu().numpy()
+        return z
 
     def forward(self, x):
         mu, logvar = self.encoder(x)
@@ -84,12 +95,8 @@ class emgVAE(nn.Module):
         total_loss = recon_loss + self.kl_weight * kl_loss + neighbor_loss
         return total_loss, recon_loss, kl_loss, neighbor_loss
 
-import torch
-import pytorch_lightning as pl
-from pytorch_lightning.callbacks import ModelCheckpoint
-from emgVAE import emgVAE
 
-class emgVAE_Lightning(pl.LightningModule):
+class emgVAE_Lightning(L.LightningModule):
     def __init__(self, input_dim, latent_dim, hidden_states, kl_weight, emg=True, lr=1e-3):
         super().__init__()
         self.save_hyperparameters()

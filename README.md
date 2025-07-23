@@ -13,13 +13,18 @@ Why use braivest?
 
 ## Setup & Installation
 
+### Pytorch Braivest
+**THIS IS A PRELIM PYTORCH VERSION OF BRAIVEST**
+Test on python3.9 (ssm is not compatible with later versions of python), pytorch 2.7.1, lightning 2.5.2
+Not all examples are updated! notebooks are still from the tensorflow models; however train.py is gives an exmaple on how to train pytorch models.
+
 ### Environment
 
-We recommend using a conda or virtualenv environment for braivest. Environment yaml file is provided. In addition, please install tensorflow and tensorflow-probability with instructions from the website. Currently, only tensorflow 2.15.0 and tensorflow-probability 0.23.0 are supported. Higher versions have keras dependency issues.
+We recommend using a conda or virtualenv environment for braivest. Environment yaml file is provided. In addition, please install pytorch and pytorch lightning.
 
 ### GPU setup
 
-We recommend using a machine with access to GPU nodes for training of models. Our models are written using Tensorflow and Tensorflow probability. Please refer to the Tensorflow documentation to learn how to set up your GPU for use.
+We recommend using a machine with access to GPU nodes for training of models.
 
 ### Installing the package
 
