@@ -21,4 +21,4 @@ classifiers = [
 "Homepage" = "https://github.com/engellab/braivest"
 
 [tool.setuptools]
-packages = ["braivest", "braivest.analysis", "braivest.model", "braivest.preprocess", "braivest.train"]
+packages = ["braivest", "braivest.analysis", "braivest.model", "braivest.preprocess"]
