@@ -1,7 +1,6 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torch.distributions import MultivariateNormal
 import torch
 import lightning as L
 
@@ -83,16 +82,7 @@ class emgVAE(nn.Module):
         kl_loss = -0.5 * torch.mean(torch.sum(1 + logvar - mu.pow(2) - logvar.exp(), dim=1))
         # Neighbor loss
         neighbor_loss = torch.mean(torch.norm(z_in - z_out, dim=1))
-        total_loss = recon_loss + self.kl_weight * kl_loss + neighbor_loss
-        return total_loss, recon_loss, kl_loss, neighbor_loss
-
-    def test_step(self, x, y):
-        x_recon, mu, logvar, z_in = self.forward(x)
-        _, _, _, z_out = self.forward(y)
-        recon_loss = F.mse_loss(x_recon, y, reduction='mean')
-        kl_loss = -0.5 * torch.mean(torch.sum(1 + logvar - mu.pow(2) - logvar.exp(), dim=1))
-        neighbor_loss = torch.mean(torch.norm(z_in - z_out, dim=1)) / torch.mean(torch.norm(z_in, dim=1))
-        total_loss = recon_loss + self.kl_weight * kl_loss + neighbor_loss
+        total_loss = recon_loss + self.kl_weight * kl_loss
         return total_loss, recon_loss, kl_loss, neighbor_loss
 
 
@@ -117,11 +107,19 @@ class emgVAE_Lightning(L.LightningModule):
 
     def validation_step(self, batch, batch_idx):
         x, y = batch
-        total_loss, recon_loss, kl_loss, neighbor_loss = self.model.test_step(x, y)
+        total_loss, recon_loss, kl_loss, neighbor_loss = self.model.compute_loss(x, y)
         self.log('val/total_loss', total_loss, prog_bar=True)
         self.log('val/recon_loss', recon_loss)
         self.log('val/kl_loss', kl_loss)
         self.log('val/neighbor_loss', neighbor_loss)
+
+    def test_step(self, batch, batch_idx):
+        x, y = batch
+        total_loss, recon_loss, kl_loss, neighbor_loss = self.model.compute_loss(x, y)
+        self.log('test/total_loss', total_loss, prog_bar=True)
+        self.log('test/recon_loss', recon_loss)
+        self.log('test/kl_loss', kl_loss)
+        self.log('test/neighbor_loss', neighbor_loss)
 
     def configure_optimizers(self):
         return torch.optim.Adam(self.parameters(), lr=self.lr)

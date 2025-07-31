@@ -26,8 +26,8 @@ emg = True  # Set to False if you don't want to explicitly set the EMG channel i
 #The EMG channel will still be used in the model as long as it's in your data.
 # If true, the EMG channel should be the last channel in your data.
 
-train_loader = DataLoader(train_dataset, batch_size=64, shuffle=True)
-val_loader = DataLoader(val_dataset, batch_size=64, shuffle=False)
+train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
 
 model = emgVAE_Lightning(input_dim, latent_dim, hidden_states, kl_weight, lr=lr)
 logger = CSVLogger("logs", name="emgvae_experiment") # can replace with WandBLogger if you prefer
