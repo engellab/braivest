@@ -3,6 +3,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.signal import butter, lfilter, freqz
 from scipy.stats import zscore
+from cupyx.scipy.signal import cwt, morlet2
+import cupy as cp
 
 def butter_filter(data, highcut=None, lowcut=None, fs=1, order=5, axis=-1):
 	"""
@@ -104,6 +106,43 @@ def pywt_frequency2scale(wavelet,frequencies,sampling_rate):
 		scales.append(scale)
 	return scales
 
+def calculate_wavelet_coeffs_cupy(recording, freqs, sampling_rate, highpass=0, z_score=True, nan_policy='remove'):
+	"""
+	CUPY (GPU) version of calculating wavelet coefficients.
+	"""
+	widths = 6*sampling_rate /(2*freqs*np.pi)
+	if nan_policy =='remove':
+		recording[np.isnan(recording)] = np.nanmax(recording)
+		if highpass > 0:
+			recording = butter_highpass_filter(recording, highpass, sampling_rate)
+		if z_score:
+			recording = zscore(recording, nan_policy='omit')
+		recording = cp.asarray(recording)
+		coefficients = cp.asnumpy(cwt(recording, morlet2, widths))
+	elif nan_policy=='split':
+		if z_score:
+			recording = zscore(recording, nan_policy='omit')
+		recording_splits = np.split(recording, np.where(np.isnan(recording))[0])
+		del recording
+		coefficients = []
+		for split in recording_splits:
+			if np.isnan(split[0]):
+				split_coefficients = np.empty((len(widths), 1))
+				split_coefficients[:] = np.nan
+				coefficients.append(split_coefficients)
+			if len(split) > 1:
+				if np.isnan(split[0]):
+					split = split[1:]
+				if highpass > 0:
+					split = butter_highpass_filter(split, highpass, sampling_rate)
+				split = cp.asarray(split)
+				split_coefficients = cwt(split, morlet2, widths)
+				split_coefficients = cp.asnumpy(split_coefficients)
+				coefficients.append(split_coefficients)
+		coefficients = np.concatenate(coefficients, axis=1)
+	return coefficients.T, freqs #want data to be of shape (nsamples, scales)
+
+
 def calculate_wavelet_coeffs(recording, wavelet_name, scales, sampling_rate, highpass=0, z_score=True, nan_policy='remove'):
 	""" 
 	Calculate the wavelet coefficients of a signal. See pywt for more reference.
@@ -160,7 +199,7 @@ def calculate_wavelet_power(coefficients, subsample= 1, nan_policy='remove'):
 		power[np.isnan(power)] =  np.mean(power[ ~ np.isnan(power)])
 	power = power[::subsample, :]
 	return power
-	
+
 
 def plot_scales(frequencies, sampling_rate, scales, wavelet_name, fig_width=12,fig_height=18,common_scale=True,columns=1,vpadding=0.2,hpadding=0.2):
 		"""
