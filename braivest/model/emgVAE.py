@@ -81,7 +81,7 @@ class emgVAE(nn.Module):
         # KL divergence
         kl_loss = -0.5 * torch.mean(torch.sum(1 + logvar - mu.pow(2) - logvar.exp(), dim=1))
         # Neighbor loss
-        neighbor_loss = torch.mean(torch.norm(z_in - z_out, dim=1))
+        neighbor_loss = torch.mean(torch.norm(z_in - z_out, dim=1))/torch.mean(torch.norm(z_in, dim=1))
         total_loss = recon_loss + self.kl_weight * kl_loss
         return total_loss, recon_loss, kl_loss, neighbor_loss
 
