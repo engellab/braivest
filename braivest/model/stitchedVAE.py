@@ -46,8 +46,9 @@ class stitchedVAE(nn.Module):
         # Reconstruction loss
         if loss_dims is None:
             loss_dims = slice(None)
-        assert x_recon[loss_dims].shape == y.shape, "Reconstructed shape does not match input shape"
-        recon_loss = F.mse_loss(x_recon[loss_dims], y, reduction='mean')
+
+        assert x_recon[:, loss_dims].shape == y.shape, "Reconstructed shape does not match input shape. Reconstructed shape: {}, Input shape: {}".format(x_recon[loss_dims].shape, y.shape)
+        recon_loss = F.mse_loss(x_recon[:, loss_dims], y, reduction='mean')
 
         # KL divergence
         kl_loss = -0.5 * torch.mean(torch.sum(1 + logvar - mu.pow(2) - logvar.exp(), dim=1))
